@@ -21,17 +21,7 @@ CISA-YOLO addresses this by integrating three complementary components built upo
 | **P2 Detection Head** | Adds 160×160 high-resolution detection at stride 4 for ultra-small targets |
 | **AWL** — Asymmetric Wasserstein Loss | Combines CIoU and NWD (6:4 ratio) to improve bounding box regression for tiny instances |
 
-### Key Results on CODA Benchmark
 
-| Model | mAP@0.5 | Stroller AP | Traffic Cone AP | Sentry Box AP | Coverage |
-|-------|---------|-------------|-----------------|---------------|----------|
-| YOLOv11n (baseline) | 0.0966 | 0.00131 | 0.00317 | 0.0000 | 3/4 |
-| YOLOv9t | 0.0994 | 0.000659 | 0.00329 | 0.0118 | 4/4 |
-| **CISA-YOLO (ours)** | **0.0985** | **0.00291 (+122%)** | **0.00415 (+31%)** | **0.00457** | **4/4** |
-
-Cross-dataset validation on **BDD100K** further confirms a **+4.3% overall mAP gain** and recovery of the completely undetectable `train` category.
-
----
 
 ## Requirements
 
@@ -72,24 +62,7 @@ The CODA (Corner Cases for Object Detection in Autonomous Driving) benchmark is 
 - 62,993 training images / 10,000 validation images
 - 10 object categories
 
-After downloading, organize the data as follows:
-```
-data/
-├── coda/
-│   ├── images/
-│   │   ├── train/
-│   │   └── val/
-│   └── labels/
-│       ├── train/
-│       └── val/
-└── bdd100k/
-    ├── images/
-    │   ├── train/
-    │   └── val/
-    └── labels/
-        ├── train/
-        └── val/
-```
+
 
 ---
 
@@ -100,60 +73,28 @@ data/
 ```bash
 # Train CISA-YOLO on CODA (300 epochs recommended for P2 head convergence)
 python train.py \
-    --model configs/cisa_yolo.yaml \
-    --data configs/coda.yaml \
+    --model yolo11_ema_cisa_p2.yaml \
+    --data coda.yaml \
     --epochs 300 \
-    --batch 16 \
+    --batch 32 \
     --imgsz 640 \
     --device 0
 
 # Train on BDD100K
 python train.py \
-    --model configs/cisa_yolo.yaml \
-    --data configs/bdd100k.yaml \
+    --model yolo11_ema_cisa_p2.yaml \
+    --data bdd100k.yaml \
     --epochs 300 \
-    --batch 16 \
+    --batch 32 \
     --imgsz 640 \
     --device 0
 ```
 
-### Evaluation
 
-```bash
-# Evaluate on CODA validation set
-python val.py \
-    --weights pretrained/cisa_yolo_coda.pt \
-    --data configs/coda.yaml \
-    --imgsz 640
-
-# Evaluate on BDD100K validation set
-python val.py \
-    --weights pretrained/cisa_yolo_bdd100k.pt \
-    --data configs/bdd100k.yaml \
-    --imgsz 640
-```
-
-### Inference
-
-```bash
-# Run inference on a single image
-python detect.py \
-    --weights pretrained/cisa_yolo_coda.pt \
-    --source path/to/image.jpg \
-    --imgsz 640 \
-    --conf 0.25
-```
 
 ---
 
-## Pretrained Weights
 
-| Model | Dataset | mAP@0.5 | Download |
-|-------|---------|---------|----------|
-| CISA-YOLO | CODA | 0.0985 | [cisa_yolo_coda.pt](https://github.com/YOUR_USERNAME/CISA-YOLO/releases) |
-| CISA-YOLO | BDD100K | 0.487 | [cisa_yolo_bdd100k.pt](https://github.com/YOUR_USERNAME/CISA-YOLO/releases) |
-
----
 
 ## Model Architecture
 
@@ -186,44 +127,11 @@ L_AWL   = 1 - M_fused
 
 ---
 
-## Ablation Study
 
-Key findings from our systematic ablation on CODA:
-
-| Config | CSAM | P2 | AWL | mAP@0.5 | Stroller | Cart | T-Cone | Sentry |
-|--------|------|----|-----|---------|----------|------|--------|--------|
-| Baseline | ✗ | ✗ | ✗ | 0.0966 | 0.00131 | 0.0132 | 0.00317 | 0.0000 |
-| +EMA only | EMA | ✗ | ✗ | 0.0907 | 0.00244 | 0.0108 | 0.00484 | 0.00182 |
-| +CISA only | CISA | ✗ | ✗ | 0.0898 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
-| +CSAM | EMA+CISA | ✗ | ✗ | 0.0915 | 0.00248 | 0.0297 | 0.00406 | 0.00573 |
-| +AWL only | ✗ | ✗ | 6:4 | 0.0906 | 0.00058 | 0.0132 | 0.00437 | 0.00187 |
-| CSAM+AWL | EMA+CISA | ✗ | 6:4 | 0.0883 | 0.00122 | 0.0315 | 0.00504 | 0.00596 |
-| **CISA-YOLO** | **EMA+CISA** | **✓** | **6:4** | **0.0985** | **0.00291** | **0.0171** | **0.00415** | **0.00457** |
-
-> Note: CISA alone causes catastrophic suppression of all long-tail categories (AP → 0), confirming that EMA's stabilizing role is structurally necessary for CSAM to function correctly.
 
 ---
 
-## Citation
 
-This repository is directly associated with the manuscript submitted to *The Visual Computer*. If you use this code or find this work helpful, please cite:
-
-```bibtex
-@article{cisayolo2025,
-  title   = {Rarity-Aware Corner-Case Detection Framework for Autonomous Driving Visual Perception},
-  journal = {The Visual Computer},
-  year    = {2025},
-  doi     = {[DOI to be assigned]}
-}
-```
-
----
-
-## License
-
-This project is released under the [MIT License](LICENSE).
-
----
 
 ## Acknowledgements
 

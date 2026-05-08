@@ -1,0 +1,6 @@
+path: D:\Project\yolo11\datasets\coda
+train: images/train
+val: images/val
+
+nc: 29
+names: ['pedestrian', 'cyclist', 'car', 'truck', 'tricycle', 'bus', 'bicycle', 'moped', 'motorcycle', 'stroller', 'cart', 'construction_vehicle', 'dog', 'barrier', 'bollard', 'sentry_box', 'traffic_cone', 'traffic_island', 'traffic_light', 'traffic_sign', 'debris', 'suitcace', 'dustbin', 'concrete_block', 'machinery', 'garbage', 'plastic_bag', 'stone', 'misc']
